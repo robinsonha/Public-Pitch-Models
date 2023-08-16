@@ -86,6 +86,10 @@ trsf <- data.frame(predict(dmy, newdata = final_vars))
 ### join data. remove original variables which dummies have been created for. filter out any missing run values
 vars <- cbind(final_vars, trsf) %>% select(-c(count, pitch_type)) %>% filter(!is.na(dre_final))
 
+## Consider correlations within the data and potentially remove highly correlated pairs prior to feature selection
+ctable<-cor(select_if(vars, is.numeric), method = c("pearson", "kendall", "spearman"), use = "complete.obs")
+print(ctable)
+
 # Remove all objects in R except "vars" dataframe
 rm(list = setdiff(ls(), "vars"))
 gc()
@@ -154,7 +158,6 @@ view(imp$res)
 xgpred <- predict(xgmodel,testtask) %>% as.data.frame()
 
 caret::RMSE(xgpred$truth, xgpred$response)
-
 
 ## retrain model on full dataset and save for future use
 fulltask <- makeRegrTask (data = vars,target = "dre_final")
